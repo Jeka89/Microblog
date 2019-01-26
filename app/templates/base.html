@@ -1,0 +1,54 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+  {% if title %}{{ title }} - Microblog{% else %}Welcome to Microblog{% endif %}
+{% endblock %}
+
+{% block navbar %}
+  <nav class="navbar navbar-default">
+    <div class="navbar-inner">
+      Microblog:
+      <a href="{{ url_for('main.index') }}">Home</a>
+      {% if current_user.is_anonymous %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+      {% else %}
+        <a href="{{ url_for('main.explore') }}">Explore</a>
+        <a href="{{ url_for('user.user', username=current_user.username) }}">Profile</a>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+      {% endif %}
+  </div>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-info" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+    {% block app_content %}{% endblock %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {{ moment.include_moment() }}
+    {{ moment.lang(g.locale) }}
+    <script>
+      function translate(sourceElem, destElem, sourceLang, destLang) {
+        $(destElem).html('<img src="{{ url_for("static", filename="loading.gif") }}">');
+        $.post('/translate', {
+          text: $(sourceElem).text(),
+          source_language: sourceLang,
+          dest_language: destLang
+        }).done(function(response) {
+            $(destElem).text(response['text'])
+        }).fail(function() {
+            $(destElem).text('Error: Could not contact server.');
+        });
+      }
+    </script>
+{% endblock %}
